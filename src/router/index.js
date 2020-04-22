@@ -1,19 +1,15 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Login from '../views/Login'
+import Home from '../views/Home'
 
 Vue.use(VueRouter)
 
 // 设置路由，不能加上s，就是一个
-const routes = [{
-    path: '/',
-    redirect: '/login'
-}, {
-    path: '/login',
-    name: 'Login',
-    component: Login
-}
-
+const routes = [ 
+   
+    { path: '/', name: 'Login', component: Login, hidden: true },
+    {path:'/home',name:'Home',component:Home,hidden:true},
 ]
 
 const router = new VueRouter({
