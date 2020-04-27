@@ -15,5 +15,6 @@ module.exports={
         host: 'localhost',
         port:8001,
         proxy: proxyObj
-    }
+    },
+  
 }
