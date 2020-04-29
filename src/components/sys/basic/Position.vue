@@ -1,15 +1,25 @@
 <template>
   <div>
     <div>
-      <el-input size="small" class="input_type"   placeholder="添加职位..."  prefix-icon="el-icon-plus"
+      <el-input
+        size="small"
+        class="input_type"
+        placeholder="添加职位..."
+        prefix-icon="el-icon-plus"
         @keydown.enter.native="addPosition"
         v-model="pos.name"
       ></el-input>
       <el-button type="primary" icon="el-icon-plus" size="small" @click="addPosition">添加</el-button>
     </div>
     <div>
-        <!-- 这里的Prop所对应的字段，应和后端的字段名是一致的，我的后端的createdate是小写 -->
-      <el-table :data="positions" border stripe style="width: 70%" @selection-change="handleSelectionChange">
+      <!-- 这里的Prop所对应的字段，应和后端的字段名是一致的，我的后端的createdate是小写 -->
+      <el-table
+        :data="positions"
+        border
+        stripe
+        style="width: 70%"
+        @selection-change="handleSelectionChange"
+      >
         <el-table-column type="selection" width="55"></el-table-column>
         <el-table-column prop="id" label="编号" width="56"></el-table-column>
         <el-table-column prop="name" label="职位名称" width="180"></el-table-column>
@@ -21,28 +31,33 @@
           </template>
         </el-table-column>
         <el-table-column fixed="right" label="操作">
-            <template slot-scope="scope">
+          <template slot-scope="scope">
             <el-button size="mini" @click="showEditDialog(scope.$index,scope.row)">编辑</el-button>
             <el-button size="mini" type="danger" @click="handleDelete(scope.$index,scope.row)">删除</el-button>
-            </template>
+          </template>
         </el-table-column>
       </el-table>
-      <el-button type="danger" size="small" style="margin-top:8px"
-      @click="deleteMany" :disabled="multipleSelection.length===0">批量删除</el-button>
+      <el-button
+        type="danger"
+        size="small"
+        style="margin-top:8px"
+        @click="deleteMany"
+        :disabled="multipleSelection.length===0"
+      >批量删除</el-button>
     </div>
     <el-dialog title="修改名称" :visible.sync="dialogVisible" width="30%">
-        <div>
-            <el-tag>职位名称</el-tag>
-            <el-input class="update_input" size="small" v-model="updatePos.name"></el-input>
-        </div>
-        <div>
-          <el-tag>是否启用</el-tag>
-          <el-switch v-model="updatePos.enabled" class="update_input"></el-switch>
-        </div>
-        <span slot="footer" class="dialog-footer">
-            <el-button @click="dialogVisible=false" size="small">取消</el-button>
-            <el-button type="primary" @click="doUpdate" size="small">确定</el-button>
-        </span>
+      <div>
+        <el-tag>职位名称</el-tag>
+        <el-input class="update_input" size="small" v-model="updatePos.name"></el-input>
+      </div>
+      <div>
+        <el-tag>是否启用</el-tag>
+        <el-switch v-model="updatePos.enabled" class="update_input"></el-switch>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible=false" size="small">取消</el-button>
+        <el-button type="primary" @click="doUpdate" size="small">确定</el-button>
+      </span>
     </el-dialog>
   </div>
 </template>
@@ -52,32 +67,32 @@ export default {
   name: "Position",
   data() {
     return {
-        // 添加输入框的数据
+      // 添加输入框的数据
       pos: {
-        name: ''
+        name: ""
       },
       //表格显示的数据
-      positions:[],
+      positions: [],
       //更新按钮的数据
-      updatePos:{
-          name:'',
-          enabled:true
+      updatePos: {
+        name: "",
+        enabled: true
       },
       //对话框显示与否的标志位
-      dialogVisible:false,
+      dialogVisible: false,
       //批量删除的数据记录
-      multipleSelection:[]
+      multipleSelection: []
     };
   },
   methods: {
-      //表格数据初始化处理
-      async initPositions(){
-          const data=await this.getRequest("/system/basic/pos/")
-          if(data){
-              this.positions=data.obj;
-          }
-      },
-      //添加新记录的事件处理
+    //表格数据初始化处理
+    async initPositions() {
+      const data = await this.getRequest("/system/basic/pos/");
+      if (data) {
+        this.positions = data.obj;
+      }
+    },
+    //添加新记录的事件处理
     async addPosition() {
       if (this.pos.name) {
         const resp = await this.postRequest("/system/basic/pos/", this.pos);
@@ -90,82 +105,90 @@ export default {
       }
     },
     //显示修改对话框
-    showEditDialog(index,data){
-        Object.assign(this.updatePos,data)//使用深拷贝
-        this.dialogVisible=true;
+    showEditDialog(index, data) {
+      Object.assign(this.updatePos, data); //使用深拷贝
+      this.dialogVisible = true;
     },
     //弹框确认修改的事件处理
-    async doUpdate(){
-        const resp=await this.putRequest("/system/basic/pos/",this.updatePos);
-        if(resp){
-          //刷新一次数据列表
-            this.initPositions()
-            this.updatePos.name=''
-            this.dialogVisible=false;
-        }
+    async doUpdate() {
+      const resp = await this.putRequest("/system/basic/pos/", this.updatePos);
+      if (resp) {
+        //刷新一次数据列表
+        this.initPositions();
+        this.updatePos.name = "";
+        this.dialogVisible = false;
+      }
     },
     //表格记录的删除按钮的事件处理
-    handleDelete(index,data){
-        this.$confirm('此操作将永久删除'+data.name+'职位，是否继续','提示',{
-            confirmButtonText:'确定',
-            cancelButtonText:'取消',
-            type:'warning'
-        }).then(()=>{
-            this.deleteRequest("/system/basic/pos/"+data.id).then(resp =>{
-                this.initPositions()
-            })
-        }).catch(()=>{
-            this.$message({
-                type:'info',
-                message:'已取消操作'
-            });
+    handleDelete(index, data) {
+      this.$confirm("此操作将永久删除" + data.name + "职位，是否继续", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(() => {
+          this.deleteRequest("/system/basic/pos/" + data.id).then(resp => {
+            this.initPositions();
+          });
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消操作"
+          });
         });
     },
     //记录多选的处理
-    handleSelectionChange(val){
-        console.log(val)
-         this.multipleSelection=val
-        
+    handleSelectionChange(val) {
+      console.log(val);
+      this.multipleSelection = val;
     },
     //批量删除
-    deleteMany(){
-        this.$confirm('此操作将永久删除'+this.multipleSelection.length+'条记录,是否记录'+'提示',{
-             confirmButtonText:'确定',
-            cancelButtonText:'取消',
-            type:'warning'
-        }).then(()=>{
-            //生成删除记录，id的查询字符串
-            let ids="?"
-            this.multipleSelection.forEach(item =>{
-                ids+="ids="+item.id +'&'
-            })
-            this.deleteRequest("/system/basic/pos/"+ids).then(resp =>{
-                this.initPositions()
-            })
-        }).catch(()=>{
-            this.$message({
-                type:'info',
-                message:'已取消操作'
-            });
+    deleteMany() {
+      this.$confirm(
+        "此操作将永久删除" +
+          this.multipleSelection.length +
+          "条记录,是否记录" +
+          "提示",
+        {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning"
+        }
+      )
+        .then(() => {
+          //生成删除记录，id的查询字符串
+          let ids = "?";
+          this.multipleSelection.forEach(item => {
+            ids += "ids=" + item.id + "&";
+          });
+          this.deleteRequest("/system/basic/pos/" + ids).then(resp => {
+            this.initPositions();
+          });
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消操作"
+          });
         });
-    },
-    //在页面元素挂载后加载数据
-    mounted(){
-        this.initPositions()
     }
-
   },
+  //在页面元素挂载后加载数据
+  mounted() {
+    this.initPositions();
+  }
 };
 </script>
 
 <style scoped>
- .input_type {
-    width: 300px;
-    margin-right: 8px;
-    margin-bottom: 16px;
-  }
-   .update_input {
-    width: 200px;
-    margin-left: 8px;
-  }
+.input_type {
+  width: 300px;
+  margin-right: 8px;
+  margin-bottom: 16px;
+}
+.update_input {
+  width: 200px;
+  margin-left: 8px;
+}
 </style>
