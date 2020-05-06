@@ -1,15 +1,23 @@
 <template>
   <div class="container">
-    <el-form :model="LoginForm" :rules="rules" ref="LoginFormRef" label-width="20px" class="form1">
+    <el-form :model="LoginForm" :rules="rules" v-loading="loading" element-loading-text="正在加载...." ref="LoginFormRef" label-width="20px" class="form1">
       <h3>系统登录</h3>
       <el-form-item  class="form-item" prop="username">
         <el-input v-model="LoginForm.username" >
           <i slot="prefix" class="el-icon-s-custom"></i>
         </el-input>
       </el-form-item>
+      <!-- 密码 -->
       <el-form-item  class="form-item" prop="password">
         <el-input  v-model="LoginForm.password" prefix-icon="iconfont icon-password" show-password >
         </el-input>
+      </el-form-item>
+      <!-- 验证码 -->
+      <el-form-item style="margin-left:20px"  prop="code">
+        <el-input  v-model="LoginForm.code" prefix-icon="iconfont icon-password" style="width:250px;margin-right:5px"
+        placeholder="点击图片刷新验证码" @keydown.enter.native="login" >
+        </el-input>
+        <el-image :src="codeUrl" @click="refreshCode" alt="加载失败" style="cursor:pointer"></el-image>
       </el-form-item>
        <el-checkbox class="el-checkbox" v-model="checked">记住我</el-checkbox>
        <el-row>
@@ -26,10 +34,16 @@ export default {
   name: "Login",
   data() {
     return {
+      //加载标识
+      loading:false,
+      //登录表单的数据绑定对象
       LoginForm: {
         username: "admin",
-        password: "123"
+        password: "123",
+        code:''
       },
+      // 验证码
+      codeUrl:'/verifyCode?time='+new Date().getTime(),
       checked: true,
       rules: {
         username: [
@@ -39,7 +53,8 @@ export default {
         password:[
           {
            required: true, $message: '请输入密码', trigger: 'blur' },
-        ]
+        ],
+        code:[{required:true,$message:'请输入验证码',trigger:'blur'}]
       }
     };
   },
@@ -49,9 +64,10 @@ export default {
         if(!valid){
           return this.$message.error('用户名或密码格式不正确,请重新输入');
         }
-      
+        this.loading=true
         const resp = await this.postKeyValueRequest('/doLogin', this.LoginForm)
         console.log(resp)
+        this.loading=false
         if (resp) {
           console.log(resp.obj);
           this.$message.success("登录成功")
@@ -67,16 +83,23 @@ export default {
           // 2. 通过编程式导航跳转到后台主页，路由地址是 /home
            await this.$router.replace((path === '/' || path === undefined) ? '/home' : path)
         }
+        //登录失败时刷新验证码
+        else{
+          this.refreshCode()
+        }
       });
     },
     resetForm(formName){
       this.$refs[formName].resetFields();
+    },
+    refreshCode(){
+      this.codeUrl='/verifyCode?time='+new Date().getTime()
     }
   }
 };
 </script>
 
-<style scoped>
+<style>
 * {
   margin: 0;
   padding: 0;
@@ -102,5 +125,9 @@ export default {
 }
 .container .el-checkbox{
   margin-left: 50px;
+}
+.el-form-item__content{
+  display: flex;
+  align-items: center;
 }
 </style>
